@@ -1,0 +1,40 @@
+name: Build APK (assembleDebug)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Unzip ram_source.zip if present
+        run: |
+          if [ -f ram_source.zip ]; then
+            unzip -o ram_source.zip -d ram_source
+            mv ram_source/* . || true
+          fi
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew || true
+
+      - name: Build with gradle wrapper
+        run: |
+          ./gradlew assembleDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-apk
+          path: app/build/outputs/apk/debug/*.apk
